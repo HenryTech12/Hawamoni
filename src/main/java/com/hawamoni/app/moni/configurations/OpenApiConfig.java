@@ -1,0 +1,52 @@
+package com.hawamoni.app.moni.configurations;
+
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.servers.Servers;
+
+@OpenAPIDefinition(
+        info = @Info(
+                description = "Hawamoni Api Documentation",
+                title = "Hawamonni",
+                version = "1.0",
+                termsOfService = "Terms Of Service",
+                license = @License(
+                        name = "hawamoni license",
+                        url = "http://hawamoni.vercel.app"
+                ),
+                contact = @Contact(
+                        name = "Henry",
+                        email = "fakorodehenry@gmail.com"
+                )
+        ),
+        servers = {
+                @Server(
+                        description = "Local Development",
+                        url = "http://localhost:8080"
+                ),
+                @Server(
+                        description = "Production Development",
+                        url = ""
+                )
+        },
+        security = @SecurityRequirement(
+                name = "JWT Token"
+        )
+)
+@SecurityScheme(
+        name = "JWT Token",
+        description = "Hawamoni Authorization Mechanism",
+        type = SecuritySchemeType.HTTP,
+        in =  SecuritySchemeIn.HEADER,
+        bearerFormat = "JWT",
+        scheme = "bearer"
+)
+public class OpenApiConfig {
+}
