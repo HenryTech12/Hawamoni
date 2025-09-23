@@ -101,7 +101,7 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfiguration() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(List.of("http://127.0.0.1:5500"));
+        corsConfiguration.setAllowedOrigins(List.of("http://127.0.0.1:5500","http://hawamoni.vercel.app"));
         corsConfiguration.setAllowedMethods(List.of("POST","GET","PUT","DELETE"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
 

@@ -33,7 +33,7 @@ import io.swagger.v3.oas.annotations.servers.Servers;
                 ),
                 @Server(
                         description = "Production Development",
-                        url = ""
+                        url = "https://hawamoni.onrender.com"
                 )
         },
         security = @SecurityRequirement(
