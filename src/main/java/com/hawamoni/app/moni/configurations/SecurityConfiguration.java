@@ -125,10 +125,6 @@ public class SecurityConfiguration {
                 .addFilterAt(authFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-        httpSecurity.oauth2Login(login -> login.loginProcessingUrl("/moni/auth/google")
-                .defaultSuccessUrl("/moni/oauth/create")
-                .permitAll());
-
         return httpSecurity.build();
     }
 
