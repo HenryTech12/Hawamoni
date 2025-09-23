@@ -35,6 +35,7 @@ public class UserService {
         if(!Objects.isNull(userDTO)){
             if(!exists(userDTO)) {
                 UserModel userModel = userMapper.convertToModel(userDTO);
+                System.out.println(userModel.getId());
                 userModel.setPassword(passwordEncoder.encode(userModel.getPassword()));
                 userRepository.save(userModel);
                 log.info("user data saved to database.");

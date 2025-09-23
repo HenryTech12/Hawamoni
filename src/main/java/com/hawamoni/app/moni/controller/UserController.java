@@ -28,11 +28,7 @@ public class UserController {
         return new ResponseEntity<>(userService.createUser(userDTO), HttpStatus.OK);
     }
 
-    @PostMapping("/oauth/create")
-    public ResponseEntity<UserResponse> createUserViaOauth() {
-        System.out.println("hello");
-        return null;
-    }
+
 
     @PostMapping("/token/refresh")
     public ResponseEntity<JwtToken> getJwtToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
@@ -42,10 +38,5 @@ public class UserController {
     @PostMapping("/auth/login")
     public void authenticateUser(@RequestBody LoginRequest loginRequest) {
 
-    }
-
-    @GetMapping("/auth/google")
-    public void continueWithGoogle() {
-        System.out.println("yokose");
     }
 }
