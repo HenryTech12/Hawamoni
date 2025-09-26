@@ -58,6 +58,18 @@ public class JwtService {
                 .build();
     }
 
+    public String generateJwtTokenUsingWallet(String walletAddress) {
+        Map<String ,String> claims = new HashMap<>();
+        long exp = 24 * 60 * 60 * 1000;
+        return Jwts.builder()
+                .claims(claims)
+                .subject(walletAddress)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + exp))
+                .signWith(getKey())
+                .compact();
+    }
+
     public String getTokenType(String token) {
         return extractClaims(token).get("type").toString();
     }

@@ -37,8 +37,7 @@ import java.util.Objects;
 public class SecurityConfiguration {
 
     private String[] publicUrls = {
-        "/moni/auth/login",
-            "/moni/auth/google",
+            "/moni/auth/**",
             "/moni/token/refresh",
             "/moni/create",
             "/v3/api-docs/**",    // OpenAPI JSON
@@ -68,7 +67,7 @@ public class SecurityConfiguration {
     @Bean
     public AuthFilter authFilter(AuthenticationManager authenticationManager) {
         AuthFilter authFilter = new AuthFilter();
-        authFilter.setFilterProcessesUrl(publicUrls[0]);
+        authFilter.setFilterProcessesUrl("/moni/auth/login");
         authFilter.setAuthenticationManager(authenticationManager);
         authFilter.setAuthenticationSuccessHandler(((request, response, authentication) -> {
 
@@ -123,12 +122,6 @@ public class SecurityConfiguration {
                                 .permitAll().anyRequest().authenticated())
                 .addFilterAt(authFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-        httpSecurity.oauth2Login(oauthLogin -> {
-            oauthLogin.loginProcessingUrl("/moni/auth/google")
-                    .defaultSuccessUrl("/moni/oauth/create")
-                    .permitAll();
-        });
 
         return httpSecurity.build();
     }
