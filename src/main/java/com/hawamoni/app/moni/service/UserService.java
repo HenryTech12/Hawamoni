@@ -1,27 +1,18 @@
 package com.hawamoni.app.moni.service;
 
 import com.hawamoni.app.moni.dto.UserDTO;
-import com.hawamoni.app.moni.dto.UserRole;
 import com.hawamoni.app.moni.exceptions.UserDataNotFound;
 import com.hawamoni.app.moni.mappers.UserMapper;
 import com.hawamoni.app.moni.model.UserModel;
-import com.hawamoni.app.moni.model.UserProfile;
-import com.hawamoni.app.moni.repository.UserProfileRepository;
 import com.hawamoni.app.moni.repository.UserRepository;
 import com.hawamoni.app.moni.request.RefreshTokenRequest;
-import com.hawamoni.app.moni.request.UserProfileRequest;
-import com.hawamoni.app.moni.request.WalletLoginRequest;
 import com.hawamoni.app.moni.response.UserResponse;
 import com.hawamoni.app.moni.tokens.AccessToken;
 import com.hawamoni.app.moni.tokens.JwtToken;
 import com.hawamoni.app.moni.tokens.RefreshToken;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -82,7 +73,6 @@ public class UserService {
         return jwtToken;
     }
 
-    @Cacheable(value = "user-exists", key = "#userDTO.email")
     public boolean exists(UserDTO userDTO) {
         return userRepository.findByEmail(userDTO.getEmail()).isPresent();
     }
@@ -121,20 +111,17 @@ public class UserService {
     }*/
 
 
-    @Cacheable(value = "user", key="#email")
     public UserDTO getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(userMapper::convertToDTO)
                 .orElseThrow(() -> new UserDataNotFound(String.format("User with email: %s data not found",email)));
     }
 
-    @Cacheable(value = "user-model", key="#email")
     public UserModel getUserModel(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserDataNotFound(String.format("User with email: %s data not found",email)));
     }
 
-    @CachePut(value = "user", key="#userDTO.email")
     public UserResponse updateUser(UserDTO userDTO) {
         String email = userDTO.getEmail();
         UserModel userModel = getUserModel(email);
@@ -155,7 +142,6 @@ public class UserService {
                 .build();
     }
 
-    @CacheEvict(value = "user", key="#email")
     public Map<String, Object> deleteUser(String email) {
         Map<String,Object> data = new HashMap<>();
         userRepository.deleteByEmail(email);

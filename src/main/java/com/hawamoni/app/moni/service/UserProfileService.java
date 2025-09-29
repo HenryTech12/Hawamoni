@@ -10,7 +10,6 @@ import com.hawamoni.app.moni.request.UserProfileRequest;
 import com.hawamoni.app.moni.response.UserResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -56,7 +55,6 @@ public class UserProfileService {
         return data;
     }
 
-    @Cacheable(value = "user-profile", key = "#email")
     public UserProfileRequest getUserProfile(String email) {
 
         Map<String,Object> data = new HashMap<>();
