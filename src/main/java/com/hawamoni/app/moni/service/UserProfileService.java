@@ -10,6 +10,7 @@ import com.hawamoni.app.moni.request.UserProfileRequest;
 import com.hawamoni.app.moni.response.UserResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,7 +32,7 @@ public class UserProfileService {
     private UserProfileMapper userProfileMapper;
 
 
-    public UserResponse updateUserProfile(UserProfileRequest userProfileRequest, String token) {
+    public UserResponse updateUserProfile(UserProfileRequest userProfileRequest, String email) {
         return null;
     }
 
@@ -54,8 +55,10 @@ public class UserProfileService {
         }
         return data;
     }
-    public UserProfileRequest getUserProfile(String token) {
-        String email = jwtService.extractEmail(token);
+
+    @Cacheable(value = "user-profile", key = "#email")
+    public UserProfileRequest getUserProfile(String email) {
+
         Map<String,Object> data = new HashMap<>();
         if(email != null) {
             UserProfile userProfile = userProfileRepository.findByUserModel(getUserModel(email))

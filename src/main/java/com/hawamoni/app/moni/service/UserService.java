@@ -15,15 +15,16 @@ import com.hawamoni.app.moni.response.UserResponse;
 import com.hawamoni.app.moni.tokens.AccessToken;
 import com.hawamoni.app.moni.tokens.JwtToken;
 import com.hawamoni.app.moni.tokens.RefreshToken;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.web3j.crypto.Keys;
-import org.web3j.crypto.Sign;
 
-import java.nio.charset.StandardCharsets;
-import java.security.SignatureException;
 import java.util.*;
 
 @Slf4j
@@ -37,6 +38,12 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtService jwtService;
+    @Value("${OAUTH_ENDPOINT}")
+    private String OAUTH_ENDPOINT;
+    @Value("${OAUTH_CLIENT_ID}")
+    private String CLIENT_ID;
+    @Value("${OAUTH_REDIRECT_URI}")
+    private String REDIRECT_URI;
 
     public UserResponse createUser(UserDTO userDTO) {
         UserResponse userResponse = null;
@@ -75,6 +82,7 @@ public class UserService {
         return jwtToken;
     }
 
+    @Cacheable(value = "user-exists", key = "#userDTO.email")
     public boolean exists(UserDTO userDTO) {
         return userRepository.findByEmail(userDTO.getEmail()).isPresent();
     }
@@ -113,19 +121,22 @@ public class UserService {
     }*/
 
 
+    @Cacheable(value = "user", key="#email")
     public UserDTO getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(userMapper::convertToDTO)
                 .orElseThrow(() -> new UserDataNotFound(String.format("User with email: %s data not found",email)));
     }
 
+    @Cacheable(value = "user-model", key="#email")
     public UserModel getUserModel(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserDataNotFound(String.format("User with email: %s data not found",email)));
     }
 
-    public UserResponse updateUser(UserDTO userDTO, String token) {
-        String email = jwtService.extractEmail(token);
+    @CachePut(value = "user", key="#userDTO.email")
+    public UserResponse updateUser(UserDTO userDTO) {
+        String email = userDTO.getEmail();
         UserModel userModel = getUserModel(email);
 
         UserModel newUserModel = userMapper.convertToModel(userDTO);
@@ -144,9 +155,9 @@ public class UserService {
                 .build();
     }
 
-    public Map<String, Object> deleteUser(String token) {
+    @CacheEvict(value = "user", key="#email")
+    public Map<String, Object> deleteUser(String email) {
         Map<String,Object> data = new HashMap<>();
-        String email = jwtService.extractEmail(token);
         userRepository.deleteByEmail(email);
         data.put("success",true);
         data.put("message", "User Data Deleted Successfully");
@@ -156,5 +167,17 @@ public class UserService {
 
     public UserDTO getLoggedInUser(String token) {
         return getUserByEmail(jwtService.extractEmail(token));
+    }
+
+    public Map<String, Object> getOauthInfo() {
+        String oauthUrlTemplate = "%s?client_id=%s&redirect_uri=%s";
+                //"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=openid%20email%20profile";
+        String oauthUrl  =  String.format(oauthUrlTemplate,OAUTH_ENDPOINT,CLIENT_ID,REDIRECT_URI);
+        String others = "&response_type=code&scope=openid%20email%20profile";
+        Map<String,Object> data = new HashMap<>();
+        data.put("oauthUrl", oauthUrl.concat(others));
+        data.put("message","Call OAUTH URL to authenticate user");
+
+        return data;
     }
 }

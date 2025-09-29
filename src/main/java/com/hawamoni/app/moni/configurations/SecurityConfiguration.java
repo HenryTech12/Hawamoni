@@ -38,6 +38,7 @@ public class SecurityConfiguration {
 
     private String[] publicUrls = {
             "/moni/auth/**",
+            "/moni/oauth/users",
             "/moni/token/refresh",
             "/moni/create",
             "/v3/api-docs/**",    // OpenAPI JSON
