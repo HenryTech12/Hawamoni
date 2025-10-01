@@ -1,6 +1,7 @@
 package com.hawamoni.app.moni.service;
 
 import com.hawamoni.app.moni.dto.UserDTO;
+import com.hawamoni.app.moni.dto.UserRole;
 import com.hawamoni.app.moni.exceptions.UserDataNotFound;
 import com.hawamoni.app.moni.mappers.UserMapper;
 import com.hawamoni.app.moni.model.UserModel;
@@ -35,6 +36,8 @@ public class UserService {
     private String CLIENT_ID;
     @Value("${OAUTH_REDIRECT_URI}")
     private String REDIRECT_URI;
+    @Autowired
+    private GoogleAuthService googleAuthService;
 
     public UserResponse createUser(UserDTO userDTO) {
         UserResponse userResponse = null;
@@ -153,6 +156,37 @@ public class UserService {
 
     public UserDTO getLoggedInUser(String token) {
         return getUserByEmail(jwtService.extractEmail(token));
+    }
+
+    public JwtToken saveUserByOauth(String token) {
+        JwtToken jwtToken = null;
+        try {
+            var payload = googleAuthService.verify(token);
+            if (payload == null) {
+                throw new RuntimeException("Invalid ID token");
+            }
+
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            System.out.println(name);
+
+            UserDTO userDTO = UserDTO.builder()
+                    .email(email)
+                    .role(UserRole.USER)
+                    .build();
+
+            System.out.println(userDTO);
+            AccessToken accessToken = jwtService.generateAccessKey(userDTO);
+            RefreshToken refreshToken = jwtService.generateRefreshToken(userDTO);
+
+            jwtToken = new JwtToken(refreshToken.getRefresh_token(),refreshToken.getRefresh_expiry_time(),accessToken.getAccess_token(),accessToken.getAccess_expiry_time());
+        }
+        catch(Exception e) {
+            log.info("an error occurred!!!: {}",e.getMessage());
+            e.printStackTrace();
+        }
+        return jwtToken;
     }
 
     public Map<String, Object> getOauthInfo() {

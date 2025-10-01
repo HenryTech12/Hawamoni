@@ -97,15 +97,8 @@ public class UserController {
     }
 
     @GetMapping("/auth/google")
-    public ResponseEntity<Map<String,Object>> authUserViaOauth(String code) {
-        System.out.println(code);
+    public ResponseEntity<JwtToken> authUserViaOauth() {
         return null;
-    }
-
-    @GetMapping("/oauth/users")
-    public ResponseEntity<Map<String,Object>> getOauthDetails() {
-        System.out.println("Retrieving...");
-        return new ResponseEntity<>(userService.getOauthInfo(),HttpStatus.OK);
     }
 
     public String extractToken(HttpServletRequest request) {

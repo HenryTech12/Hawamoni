@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -23,6 +25,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -40,6 +43,7 @@ public class SecurityConfiguration {
             "/moni/auth/**",
             "/moni/oauth/users",
             "/moni/token/refresh",
+            "/moni/auth/google",
             "/moni/create",
             "/v3/api-docs/**",    // OpenAPI JSON
             "/swagger-ui.html",   // Swagger UI HTML entrypoint
@@ -122,8 +126,34 @@ public class SecurityConfiguration {
                         requests.requestMatchers(publicUrls)
                                 .permitAll().anyRequest().authenticated())
                 .addFilterAt(authFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth -> oauth
+                .redirectionEndpoint(redir -> redir.baseUri("/moni/auth/google"))
+                .successHandler((request, response, authentication) -> {
+                    DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
+                    String email = oidcUser.getEmail();   // shortcut
+                    String name = oidcUser.getFullName(); // shortcut
 
+                    // load user from DB
+                    UserDTO userDTO = userService.getUserByEmail(email);
+
+                    // generate JWTs
+                    AccessToken accessToken = jwtService.generateAccessKey(userDTO);
+                    RefreshToken refreshToken = jwtService.generateRefreshToken(userDTO);
+
+                    // redirect with JWT attached
+
+                    JwtToken jwtToken = new JwtToken(refreshToken.getRefresh_token(),refreshToken.getRefresh_expiry_time(),accessToken.getAccess_token(),accessToken.getAccess_expiry_time());
+                    ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", accessToken.getAccess_token())
+                            .httpOnly(true)
+                            .secure(true)
+                            .sameSite("Strict")
+                            .path("/")
+                            .build();
+                    response.getWriter().write(objectMapper.writeValueAsString(jwtToken));
+                    response.sendRedirect("https://hawamoni.vercel.app/");
+
+                }));
         return httpSecurity.build();
     }
 
