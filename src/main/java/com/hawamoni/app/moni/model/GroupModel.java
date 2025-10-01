@@ -16,7 +16,8 @@ public class GroupModel {
     private String name;
     private String description;
     private String treasury_pubkey;
-    private String approvals_required;
+    private int approvals_count;
+    private int approvals_required;
     private String created_by;
     private String created_at;
 

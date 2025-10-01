@@ -17,8 +17,8 @@ public class GroupDTO {
     private String description;
     @NotNull(message = "treasury_pubkey cannot be null")
     private String treasury_pubkey;
-    
-    private String approvals_required;
+    private int approvals_count;
+    private int approvals_required;
     private String created_by;
     private String created_at;
 }
