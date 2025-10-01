@@ -28,4 +28,5 @@ public class UserDTO {
     private String password;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private UserRole role;
+    private boolean signUpwithgoogle;
 }

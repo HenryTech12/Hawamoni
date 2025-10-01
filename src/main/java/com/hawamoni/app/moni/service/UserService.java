@@ -11,6 +11,7 @@ import com.hawamoni.app.moni.response.UserResponse;
 import com.hawamoni.app.moni.tokens.AccessToken;
 import com.hawamoni.app.moni.tokens.JwtToken;
 import com.hawamoni.app.moni.tokens.RefreshToken;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -199,5 +200,34 @@ public class UserService {
         data.put("message","Call OAUTH URL to authenticate user");
 
         return data;
+    }
+
+    public UserDTO configureGoogleOauth(String email, String name, HttpServletRequest request) {
+
+        UserDTO userDTO = userRepository.findByEmail(email)
+                .map(userMapper::convertToDTO)
+                .orElse(null);
+
+        UserDTO newUser = null;
+        if(userDTO == null) {
+            String[] names = name.split(" ");
+            String first_name = "";
+            String last_name = "";
+
+            if(names.length >= 2) {first_name = names[0];last_name = names[1];}
+            else {first_name = name;}
+
+            newUser = UserDTO.builder()
+                    .first_name(first_name)
+                    .last_name(last_name)
+                    .role(UserRole.USER)
+                    .password(UUID.randomUUID().toString().substring(8))
+                    .email(email)
+                    .build();
+            request.setAttribute("withGoogle",true);
+            createUser(newUser);
+        }
+        else {newUser = userDTO;}
+        return newUser;
     }
 }

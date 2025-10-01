@@ -33,6 +33,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Configuration
@@ -92,9 +93,14 @@ public class SecurityConfiguration {
 
         authFilter.setAuthenticationFailureHandler(((request, response, exception) -> {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
             ErrorResponse errorResponse =
                     new ErrorResponse();
-            response.getWriter().write(objectMapper.writeValueAsString(errorResponse.configureError(request,exception)));
+            Map<String,Object> errors = errorResponse.configureError(request,exception);
+            if(Objects.equals(request.getAttribute("withGoogle"),true)) {
+                errors.put("authMsg", "account was created via continue with google, try to update password using forgot password.");
+            }
+            response.getWriter().write(objectMapper.writeValueAsString(errors));
         }));
 
         return authFilter;
@@ -132,10 +138,14 @@ public class SecurityConfiguration {
                 .successHandler((request, response, authentication) -> {
                     DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
                     String email = oidcUser.getEmail();   // shortcut
+                    Map<String,Object> claims = oidcUser.getClaims();
+                    System.out.println(claims);
                     String name = oidcUser.getFullName(); // shortcut
 
+                    System.out.println("EMAIL: "+email);
+                    System.out.println("NAME: "+name);
                     // load user from DB
-                    UserDTO userDTO = userService.getUserByEmail(email);
+                    UserDTO userDTO = userService.configureGoogleOauth(email,name,request);
 
                     // generate JWTs
                     AccessToken accessToken = jwtService.generateAccessKey(userDTO);

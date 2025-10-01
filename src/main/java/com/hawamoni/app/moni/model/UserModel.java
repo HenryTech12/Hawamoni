@@ -19,4 +19,5 @@ public class UserModel {
     private String email;
     private String password;
     private UserRole role;
+    private boolean signUpwithgoogle;
 }
