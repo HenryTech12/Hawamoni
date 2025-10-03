@@ -10,6 +10,7 @@ import com.hawamoni.app.moni.mappers.MemberMapper;
 import com.hawamoni.app.moni.model.GroupModel;
 import com.hawamoni.app.moni.model.MemberModel;
 import com.hawamoni.app.moni.model.UserModel;
+import com.hawamoni.app.moni.notifications.Notification;
 import com.hawamoni.app.moni.repository.GroupRepository;
 import com.hawamoni.app.moni.repository.MemberRepository;
 import com.hawamoni.app.moni.repository.UserRepository;
@@ -17,6 +18,7 @@ import com.hawamoni.app.moni.request.MemberRequest;
 import com.hawamoni.app.moni.request.UpdateMemberRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -47,6 +49,9 @@ public class MemberService {
     @Autowired
     private GroupService groupService;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     public MemberDTO createMember(Long groupId, MemberRequest memberRequest, String token) {
         MemberDTO memberDTO = null;
         if(!Objects.isNull(memberRequest)) {
@@ -66,6 +71,8 @@ public class MemberService {
 
 
             memberRepository.save(memberModel);
+
+            messagingTemplate.convertAndSend("/moni/notification", new Notification("Member Added"));
 
             GroupModel groupModel = groupRepository.findById(groupId)
                     .orElseThrow(() -> new GroupDataNotFound("Group Details Not Found"));
@@ -94,6 +101,8 @@ public class MemberService {
                 .orElseThrow(() -> new UserDataNotFound("No member data found"));
         memberModel.setActive(request.isActive());
         memberModel.setRole(request.role());
+
+        messagingTemplate.convertAndSend("/moni/notification", new Notification("Role Changed"));
 
         if(Objects.equals(groupId,memberModel.getMemberId())) {
             GroupModel groupModel = groupRepository.findById(groupId)

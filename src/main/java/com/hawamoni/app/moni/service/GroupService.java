@@ -9,6 +9,7 @@ import com.hawamoni.app.moni.mappers.GroupMapper;
 import com.hawamoni.app.moni.model.GroupModel;
 import com.hawamoni.app.moni.model.MemberModel;
 import com.hawamoni.app.moni.model.UserModel;
+import com.hawamoni.app.moni.notifications.Notification;
 import com.hawamoni.app.moni.repository.GroupRepository;
 import com.hawamoni.app.moni.repository.MemberRepository;
 import com.hawamoni.app.moni.repository.UserRepository;
@@ -16,6 +17,7 @@ import com.hawamoni.app.moni.request.GroupRequest;
 import com.hawamoni.app.moni.response.GroupResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -42,6 +44,9 @@ public class GroupService {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     public GroupResponse createGroup(GroupRequest groupRequest, String token) {
         GroupResponse groupResponse = null;
@@ -77,6 +82,8 @@ public class GroupService {
 
                 userModel.setGroups(groups);
                 userRepository.save(userModel);
+
+                messagingTemplate.convertAndSend("/moni/notification", new Notification("Group Created"));
             }
         }
         return groupResponse;
