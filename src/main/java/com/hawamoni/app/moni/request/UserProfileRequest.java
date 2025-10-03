@@ -13,11 +13,10 @@ import java.time.LocalDateTime;
 @Data
 public class UserProfileRequest {
     @NotNull(message = "wallet key cannot be null")
-    private String wallet_pubkey;
+    private String walletAddress;
     @NotNull(message = "phone number cannot be null")
-    private String phone;
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long profileId;
+    private String phoneNum;
+    private String email;
     private LocalDateTime created_at;
 }
 

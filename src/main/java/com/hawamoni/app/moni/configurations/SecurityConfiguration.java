@@ -161,7 +161,7 @@ public class SecurityConfiguration {
                             .path("/")
                             .build();
                     response.getWriter().write(objectMapper.writeValueAsString(jwtToken));
-                    response.sendRedirect("https://hawamoni.vercel.app/");
+                    response.sendRedirect("https://hawamoni.vercel.app/dashboard");
 
                 }));
         return httpSecurity.build();

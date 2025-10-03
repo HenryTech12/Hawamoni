@@ -81,13 +81,6 @@ public class UserService {
         return userRepository.findByEmail(userDTO.getEmail()).isPresent();
     }
 
-    public Map<String,String> generateNonce(String walletAddress) {
-        Map<String, String> nonce = new HashMap<>();
-        if(walletAddress != null) {
-            nonce.put(walletAddress, UUID.randomUUID().toString());
-        }
-        return nonce;
-    }
 /*
     public Map<String,Object> verifyNonceToken(WalletLoginRequest walletLoginRequest) {
         Map<String,Object> data = new HashMap<>();

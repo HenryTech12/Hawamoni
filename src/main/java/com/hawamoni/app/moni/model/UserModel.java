@@ -1,11 +1,11 @@
 package com.hawamoni.app.moni.model;
 
+import com.hawamoni.app.moni.dto.GroupDTO;
 import com.hawamoni.app.moni.dto.UserRole;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -18,6 +18,9 @@ public class UserModel {
     private String last_name;
     private String email;
     private String password;
+    private String walletAddress;
+    private String createdAt;
     private UserRole role;
-    private boolean signUpwithgoogle;
+    @OneToMany(mappedBy = "user")
+    private List<GroupModel> groups;
 }
