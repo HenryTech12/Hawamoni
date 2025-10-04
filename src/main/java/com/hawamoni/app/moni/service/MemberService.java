@@ -17,6 +17,7 @@ import com.hawamoni.app.moni.repository.UserRepository;
 import com.hawamoni.app.moni.request.MemberRequest;
 import com.hawamoni.app.moni.request.UpdateMemberRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -57,33 +58,44 @@ public class MemberService {
         if(!Objects.isNull(memberRequest)) {
             String email = jwtService.extractEmail(token);
 
+
             UserModel userModel = userRepository.findByEmail(email)
                     .orElseThrow(() ->  new UserDataNotFound("User Not Found"));
 
-            MemberModel memberModel = new MemberModel();
-            memberModel.setUserId(userModel.getId());
-            memberModel.setFirstName(memberRequest.firstName());
-            memberModel.setLastName(memberRequest.lastName());
-            memberModel.setActive(true);
-            memberModel.setRole(MemberRole.MEMBER);
-            memberModel.setJoinedAt(LocalDateTime.now().toString());
-            memberModel.setGroupId(groupId);
+            UserModel newMember = userRepository.findByEmail(memberRequest.email())
+                    .orElse(null);
+
+            if(!Objects.isNull(newMember)) {
+                MemberModel memberModel = new MemberModel();
+                memberModel.setUserId(newMember.getId());
+                memberModel.setFirstName(memberRequest.firstName());
+                memberModel.setLastName(memberRequest.lastName());
+                memberModel.setActive(true);
+                memberModel.setEmail(memberRequest.email());
+                memberModel.setRole(MemberRole.MEMBER);
+                memberModel.setJoinedAt(LocalDateTime.now().toString());
+                memberModel.setGroupId(groupId);
 
 
-            memberRepository.save(memberModel);
+                memberRepository.save(memberModel);
 
-            messagingTemplate.convertAndSend("/moni/notification", new Notification("Member Added"));
 
-            GroupModel groupModel = groupRepository.findById(groupId)
-                    .orElseThrow(() -> new GroupDataNotFound("Group Details Not Found"));
+                GroupModel groupModel = groupRepository.findById(groupId)
+                        .orElseThrow(() -> new GroupDataNotFound("Group Details Not Found"));
 
-            int increaseTotalMember = groupModel.getTotalMembers() + 1;
-            groupService.updateTotalMembers(increaseTotalMember,groupModel);
-            log.info("member model saved to database");
+                int increaseTotalMember = groupModel.getTotalMembers() + 1;
+                groupService.updateTotalMembers(increaseTotalMember, groupModel);
+                log.info("member model saved to database");
 
-            //trigger member added notification
+                //trigger member added notification
+                messagingTemplate.convertAndSend("/moni/notification", new Notification("You became a member to group: "+groupModel.getGroupName()));
 
-            memberDTO = memberMapper.convertToDTO(memberModel);
+                memberDTO = memberMapper.convertToDTO(memberModel);
+
+            }
+            else {
+
+            }
         }
         return memberDTO;
     }

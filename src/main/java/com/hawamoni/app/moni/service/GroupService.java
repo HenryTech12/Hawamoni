@@ -55,9 +55,10 @@ public class GroupService {
                     findByEmail(jwtService.extractEmail(token))
                             .orElseThrow(() -> new UserDataNotFound("user not found"));
             //validate user
-            if(!Objects.isNull(userModel)) {
+            if(!Objects.isNull(userModel) && Objects.equals(groupRequest.email(),userModel.getEmail())) {
                 GroupModel groupModel = new GroupModel();
                 groupModel.setCreatedAt(LocalDateTime.now().toString());
+                groupModel.setCreator(userModel.getId());
                 groupModel.setGroupName(groupRequest.groupName());
                 groupModel.setDescription(groupRequest.description());
 

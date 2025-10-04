@@ -14,6 +14,7 @@ public class GroupModel {
     private Long groupId;
     private Long creator;
     private String pda_pubkey;
+    @Column(unique = true)
     private String groupName;
     private String description;
     private String treasury_pubkey;
